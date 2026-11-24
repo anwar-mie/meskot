@@ -1,0 +1,27 @@
+{
+  "name": "meskot-ecommerce",
+  "private": true,
+  "packageManager": "bun@1.3.14",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "db:generate": "bun run --cwd packages/database db:generate",
+    "db:migrate": "bun run --cwd packages/database db:migrate",
+    "db:push": "bun run --cwd packages/database db:push",
+    "db:seed": "bun run --cwd packages/database db:seed",
+    "db:studio": "bun run --cwd packages/database db:studio",
+    "docker:up": "docker compose -f infrastructure/docker/docker-compose.yml up -d",
+    "docker:down": "docker compose -f infrastructure/docker/docker-compose.yml down"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  }
+}
