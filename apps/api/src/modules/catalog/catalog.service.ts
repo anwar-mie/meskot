@@ -269,18 +269,29 @@ export class CatalogService {
           status: input.status,
           isFeatured: input.isFeatured,
           isReturnable: input.isReturnable,
-          ...(input.imageUrl
+          ...(input.imageUrls && input.imageUrls.length > 0
             ? {
                 images: {
-                  create: {
-                    url: input.imageUrl,
+                  create: input.imageUrls.map((url, idx) => ({
+                    url,
                     altText: input.nameEn,
-                    isPrimary: true,
-                    sortOrder: 0,
-                  },
+                    isPrimary: idx === 0,
+                    sortOrder: idx,
+                  })),
                 },
               }
-            : {}),
+            : input.imageUrl
+              ? {
+                  images: {
+                    create: {
+                      url: input.imageUrl,
+                      altText: input.nameEn,
+                      isPrimary: true,
+                      sortOrder: 0,
+                    },
+                  },
+                }
+              : {}),
           variants: {
             create: input.variants.map((v) => ({
               sku: v.sku,
@@ -345,6 +356,21 @@ export class CatalogService {
           ...(input.isReturnable !== undefined ? { isReturnable: input.isReturnable } : {}),
         },
       });
+
+      if (input.imageUrls !== undefined) {
+        await tx.productImage.deleteMany({ where: { productId: id } });
+        if (input.imageUrls.length > 0) {
+          await tx.productImage.createMany({
+            data: input.imageUrls.map((url, idx) => ({
+              productId: id,
+              url,
+              altText: prod.nameEn,
+              isPrimary: idx === 0,
+              sortOrder: idx,
+            })),
+          });
+        }
+      }
 
       if (input.variants && input.variants.length > 0) {
         const defaultWarehouse = await tx.warehouse.findFirst({

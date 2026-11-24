@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { formatEtb } from '@meskot/shared-types';
 import { StorefrontHeader } from '@/components/storefront-header';
-import { apiFetch, ApiError } from '@/lib/api';
+import { apiFetch, apiUploadFile, ApiError } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 
 interface OrderItem {
@@ -30,6 +30,8 @@ export default function RequestReturnPage() {
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [reason, setReason] = useState('Item arrived damaged');
   const [customerNote, setCustomerNote] = useState('');
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -160,6 +162,56 @@ export default function RequestReturnPage() {
                 placeholder="Describe the issue..."
                 className="rounded-[14px] border border-border-subtle p-4 text-[15px] text-ink outline-none focus:border-brand"
               />
+            </div>
+
+            <div className="rounded-[14px] border border-border-subtle bg-surface p-5 flex flex-col gap-3">
+              <p className="text-[16px] font-semibold text-ink">Add photos (optional)</p>
+              <p className="text-[13px] text-muted">
+                Photos help us understand the issue. JPG, PNG or WebP, up to 5 MB each.
+              </p>
+              {photoUrls.length > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {photoUrls.map((url, idx) => (
+                    <img
+                      key={`${url}-${idx}`}
+                      src={url}
+                      alt={`Return photo ${idx + 1}`}
+                      className="size-[84px] rounded-[10px] object-cover border border-border-subtle"
+                    />
+                  ))}
+                </div>
+              )}
+              <div>
+                <label className="inline-flex items-center min-h-[44px] px-4 rounded-[10px] border border-border-subtle bg-surface text-[14px] font-semibold text-ink hover:bg-canvas cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    disabled={uploading}
+                    className="hidden"
+                    onChange={async (e) => {
+                      const files = Array.from(e.target.files ?? []);
+                      if (files.length === 0) return;
+                      setUploading(true);
+                      setError(null);
+                      try {
+                        for (const file of files) {
+                          const uploaded = await apiUploadFile(file, 'returns');
+                          setPhotoUrls((prev) => [...prev, uploaded.url]);
+                        }
+                      } catch (err) {
+                        setError(
+                          err instanceof ApiError ? err.message : 'Unable to upload photo.',
+                        );
+                      } finally {
+                        setUploading(false);
+                        e.target.value = '';
+                      }
+                    }}
+                  />
+                  {uploading ? 'Uploading...' : 'Upload photos'}
+                </label>
+              </div>
             </div>
 
             <p className="text-[13px] text-muted">

@@ -88,3 +88,40 @@ export async function apiFetch<T>(
 
   return data as T;
 }
+
+export async function apiUploadFile(
+  file: File,
+  folder: 'products' | 'returns' | 'deliveries' = 'products',
+): Promise<{ url: string; key: string; storage: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const token = useAuthStore.getState().accessToken;
+  const headers = new Headers();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  let res = await fetch(`${API_BASE}/media/upload?folder=${folder}`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (res.status === 401) {
+    const newToken = await tryRefreshTokens();
+    if (newToken) {
+      headers.set('Authorization', `Bearer ${newToken}`);
+      res = await fetch(`${API_BASE}/media/upload?folder=${folder}`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+    }
+  }
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+  if (!res.ok) {
+    throw new ApiError(data?.message ?? `Upload failed (${res.status})`, res.status, data);
+  }
+  return data as { url: string; key: string; storage: string };
+}

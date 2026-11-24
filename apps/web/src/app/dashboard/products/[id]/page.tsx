@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { StaffShell } from '@/components/staff-shell';
-import { apiFetch, ApiError } from '@/lib/api';
+import { apiFetch, apiUploadFile, ApiError } from '@/lib/api';
 
 interface Category {
   id: string;
@@ -34,6 +34,8 @@ export default function ProductEditorPage() {
   const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState<'DRAFT' | 'PUBLISHED' | 'UNPUBLISHED' | 'ARCHIVED'>('DRAFT');
   const [isFeatured, setIsFeatured] = useState(false);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [uploadingImg, setUploadingImg] = useState(false);
   const [variants, setVariants] = useState<VariantDraft[]>([
     { sku: '', nameEn: 'Standard', price: '', costPrice: '' },
   ]);
@@ -63,6 +65,7 @@ export default function ProductEditorPage() {
       categoryId: string;
       status: 'DRAFT' | 'PUBLISHED' | 'UNPUBLISHED' | 'ARCHIVED';
       isFeatured: boolean;
+      images?: Array<{ url: string }>;
       variants: Array<{
         id: string;
         sku: string;
@@ -81,6 +84,7 @@ export default function ProductEditorPage() {
         setCategoryId(p.categoryId);
         setStatus(p.status);
         setIsFeatured(p.isFeatured);
+        setImageUrls((p.images ?? []).map((img) => img.url));
         setVariants(
           p.variants.map((v) => ({
             id: v.id,
@@ -120,6 +124,7 @@ export default function ProductEditorPage() {
         brand: brand || undefined,
         status,
         isFeatured,
+        imageUrls,
         variants: variants.map((v) => ({
           ...(v.id ? { id: v.id } : {}),
           sku: v.sku.trim(),
@@ -252,6 +257,87 @@ export default function ProductEditorPage() {
                   placeholder="Describe materials, dimensions, and care instructions..."
                   className="rounded-[10px] border border-border-subtle p-4 text-[15px] text-ink outline-none focus:border-brand"
                 />
+              </div>
+            </section>
+
+            {/* Product Images (Figma 4:1855) */}
+            <section className="rounded-[14px] border border-border-subtle bg-surface p-6 flex flex-col gap-4">
+              <div>
+                <h2 className="text-[20px] font-semibold text-ink">Images</h2>
+                <p className="text-[13px] text-muted mt-1">
+                  The first image is your main storefront photo. JPG, PNG or WebP · Up to 5 MB.
+                </p>
+              </div>
+
+              {imageUrls.length > 0 && (
+                <div className="flex flex-wrap gap-4">
+                  {imageUrls.map((url, idx) => (
+                    <div key={`${url}-${idx}`} className="w-[180px] flex flex-col gap-2">
+                      <img
+                        src={url}
+                        alt={`Product image ${idx + 1}`}
+                        className="h-[144px] w-[180px] rounded-[10px] object-cover border border-border-subtle bg-canvas"
+                      />
+                      <div className="flex items-center gap-2 text-[13px]">
+                        {idx === 0 ? (
+                          <span className="text-brand font-medium">Main image</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setImageUrls((prev) => [url, ...prev.filter((_, i) => i !== idx)])
+                            }
+                            className="text-muted hover:text-ink"
+                          >
+                            Make main
+                          </button>
+                        )}
+                        <span className="text-muted">·</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setImageUrls((prev) => prev.filter((_, i) => i !== idx))
+                          }
+                          className="text-muted hover:text-red-700"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div>
+                <label className="inline-flex items-center min-h-[48px] px-4 py-3 rounded-[10px] border border-border-subtle bg-surface text-[13px] font-semibold text-ink hover:bg-canvas cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    disabled={uploadingImg}
+                    className="hidden"
+                    onChange={async (e) => {
+                      const files = Array.from(e.target.files ?? []);
+                      if (files.length === 0) return;
+                      setUploadingImg(true);
+                      setError(null);
+                      try {
+                        for (const file of files) {
+                          const uploaded = await apiUploadFile(file, 'products');
+                          setImageUrls((prev) => [...prev, uploaded.url]);
+                        }
+                      } catch (err) {
+                        setError(
+                          err instanceof ApiError ? err.message : 'Unable to upload image.',
+                        );
+                      } finally {
+                        setUploadingImg(false);
+                        e.target.value = '';
+                      }
+                    }}
+                  />
+                  {uploadingImg ? 'Uploading...' : 'Upload images'}
+                </label>
               </div>
             </section>
 

@@ -10,6 +10,7 @@ import { StockModule } from './modules/stock/stock.module';
 import { SalesModule } from './modules/sales/sales.module';
 import { FulfilmentModule } from './modules/fulfilment/fulfilment.module';
 import { OperationsModule } from './modules/operations/operations.module';
+import { MediaModule } from './modules/media/media.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { OperationsModule } from './modules/operations/operations.module';
     SalesModule,
     FulfilmentModule,
     OperationsModule,
+    MediaModule,
   ],
   controllers: [HealthController],
   providers: [

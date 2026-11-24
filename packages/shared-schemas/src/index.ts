@@ -188,6 +188,7 @@ export const createProductSchema = z.object({
   isFeatured: z.boolean().default(false),
   isReturnable: z.boolean().default(true),
   imageUrl: z.string().trim().max(500).optional(),
+  imageUrls: z.array(z.string().trim().max(500)).optional(),
   variants: z.array(productVariantInputSchema).min(1, 'At least one sellable variant is required'),
 });
 
