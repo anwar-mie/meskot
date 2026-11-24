@@ -333,6 +333,14 @@ export class AuthService {
     return { loggedOut: true };
   }
 
+  async updatePreferredLocale(userId: string, locale: 'en' | 'am') {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { preferredLocale: locale },
+    });
+    return { preferredLocale: locale };
+  }
+
   private userWithRolesInclude() {
     return {
       roles: {

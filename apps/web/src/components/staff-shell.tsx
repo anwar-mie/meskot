@@ -4,20 +4,21 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
 import { apiFetch } from '@/lib/api';
+import { useTranslations, type Locale, type TranslationKey } from '@/lib/i18n';
 
-const NAV_ITEMS = [
-  { label: 'Overview', href: '/dashboard' },
-  { label: 'Products', href: '/dashboard/products' },
-  { label: 'Inventory', href: '/dashboard/inventory' },
-  { label: 'Orders', href: '/dashboard/orders' },
-  { label: 'Deliveries', href: '/dashboard/deliveries' },
-  { label: 'Customers', href: '/dashboard/customers' },
-  { label: 'Reports', href: '/dashboard/reports' },
-  { label: 'Employees', href: '/dashboard/employees' },
-  { label: 'Roles & permissions', href: '/dashboard/roles' },
-  { label: 'Delivery zones', href: '/dashboard/delivery-zones' },
-  { label: 'Settings', href: '/dashboard/settings' },
-  { label: 'Audit log', href: '/dashboard/audit-log' },
+const NAV_ITEMS: Array<{ key: TranslationKey; href: string }> = [
+  { key: 'navOverview', href: '/dashboard' },
+  { key: 'navProducts', href: '/dashboard/products' },
+  { key: 'navInventory', href: '/dashboard/inventory' },
+  { key: 'navOrders', href: '/dashboard/orders' },
+  { key: 'navDeliveries', href: '/dashboard/deliveries' },
+  { key: 'navCustomers', href: '/dashboard/customers' },
+  { key: 'navReports', href: '/dashboard/reports' },
+  { key: 'navEmployees', href: '/dashboard/employees' },
+  { key: 'navRoles', href: '/dashboard/roles' },
+  { key: 'navDeliveryZones', href: '/dashboard/delivery-zones' },
+  { key: 'navSettings', href: '/dashboard/settings' },
+  { key: 'navAuditLog', href: '/dashboard/audit-log' },
 ];
 
 export function StaffShell({
@@ -30,6 +31,18 @@ export function StaffShell({
   const pathname = usePathname();
   const router = useRouter();
   const { user, refreshToken, clearSession } = useAuthStore();
+  const { locale, setLocale, t } = useTranslations();
+
+  function switchLocale(next: Locale) {
+    setLocale(next);
+    if (user) {
+      apiFetch('/auth/locale', {
+        method: 'POST',
+        auth: true,
+        body: JSON.stringify({ locale: next }),
+      }).catch(() => {});
+    }
+  }
 
   async function handleSignOut() {
     if (refreshToken) {
@@ -52,7 +65,9 @@ export function StaffShell({
         <Link href="/" className="text-[28px] font-bold tracking-tight text-brand mb-4">
           market.
         </Link>
-        <p className="text-[11px] font-semibold tracking-wider text-muted px-3 mb-2">WORKSPACE</p>
+        <p className="text-[11px] font-semibold tracking-wider text-muted px-3 mb-2">
+          {t('workspace')}
+        </p>
         {NAV_ITEMS.map((item) => {
           const isActive =
             item.href === '/dashboard'
@@ -60,7 +75,7 @@ export function StaffShell({
               : pathname.startsWith(item.href);
           return (
             <Link
-              key={item.label}
+              key={item.key}
               href={item.href}
               className={`px-3 py-2.5 rounded-[10px] text-[13px] transition-colors ${
                 isActive
@@ -68,18 +83,34 @@ export function StaffShell({
                   : 'text-muted hover:bg-canvas hover:text-ink'
               }`}
             >
-              {item.label}
+              {t(item.key)}
             </Link>
           );
         })}
-        <div className="mt-auto pt-6 px-3 text-[13px] text-muted">Help &amp; support</div>
+        <div className="mt-auto pt-6 px-3 text-[13px] text-muted">{t('helpSupport')}</div>
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-surface border-b border-border-subtle px-8 py-5 flex items-center justify-between gap-4">
           <p className="text-[16px] font-medium text-muted">{title}</p>
           <div className="flex items-center gap-6 text-[13px]">
-            <span className="hidden sm:inline text-muted">English / Amharic</span>
+            <div className="hidden sm:flex items-center gap-2 text-muted">
+              <button
+                type="button"
+                onClick={() => switchLocale('en')}
+                className={locale === 'en' ? 'font-semibold text-brand' : 'hover:text-ink'}
+              >
+                English
+              </button>
+              <span>/</span>
+              <button
+                type="button"
+                onClick={() => switchLocale('am')}
+                className={locale === 'am' ? 'font-semibold text-brand' : 'hover:text-ink'}
+              >
+                አማርኛ
+              </button>
+            </div>
             {user ? (
               <div className="flex items-center gap-3">
                 <span className="font-medium text-ink">
@@ -90,12 +121,12 @@ export function StaffShell({
                   onClick={handleSignOut}
                   className="text-muted hover:text-ink underline"
                 >
-                  Sign out
+                  {t('signOut')}
                 </button>
               </div>
             ) : (
               <Link href="/auth/sign-in" className="font-semibold text-brand hover:underline">
-                Sign in as staff
+                {t('signIn')}
               </Link>
             )}
           </div>

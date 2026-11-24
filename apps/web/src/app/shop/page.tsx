@@ -7,17 +7,20 @@ import { formatEtb } from '@meskot/shared-types';
 import { StorefrontHeader } from '@/components/storefront-header';
 import { apiFetch } from '@/lib/api';
 import { resolveProductImage } from '@/lib/product-images';
+import { useTranslations } from '@/lib/i18n';
 
 interface Category {
   id: string;
   slug: string;
   nameEn: string;
+  nameAm?: string | null;
 }
 
 interface ProductSummary {
   id: string;
   slug: string;
   nameEn: string;
+  nameAm?: string | null;
   minPrice: number;
   totalAvailable: number;
   category: Category;
@@ -26,6 +29,7 @@ interface ProductSummary {
 
 function ShopContent() {
   const searchParams = useSearchParams();
+  const { t, pickLocalized } = useTranslations();
   const initialCategory = searchParams.get('category') ?? '';
   const initialSearch = searchParams.get('search') ?? '';
 
@@ -91,15 +95,15 @@ function ShopContent() {
           </span>
         </p>
 
-        <h1 className="text-[28px] font-bold text-ink">Find your everyday favorites</h1>
+        <h1 className="text-[28px] font-bold text-ink">{t('shopHeading')}</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-[248px_1fr] gap-4 items-start">
           {/* Filters sidebar (Figma 4:594) */}
           <aside className="rounded-[14px] border border-border-subtle bg-surface p-6 flex flex-col gap-4">
-            <h2 className="text-[20px] font-semibold text-ink">Filters</h2>
+            <h2 className="text-[20px] font-semibold text-ink">{t('filters')}</h2>
 
             <div className="flex flex-col gap-2">
-              <p className="text-[16px] font-semibold text-ink">Category</p>
+              <p className="text-[16px] font-semibold text-ink">{t('category')}</p>
               <button
                 type="button"
                 onClick={() => setSelectedCategory('')}
@@ -107,7 +111,7 @@ function ShopContent() {
                   selectedCategory === '' ? 'text-brand font-semibold' : 'text-muted hover:text-ink'
                 }`}
               >
-                {selectedCategory === '' ? '☑' : '□'} All products
+                {selectedCategory === '' ? '☑' : '□'} {t('allProducts')}
               </button>
               {categories.map((cat) => (
                 <button
@@ -120,7 +124,7 @@ function ShopContent() {
                       : 'text-muted hover:text-ink'
                   }`}
                 >
-                  {selectedCategory === cat.slug ? '☑' : '□'} {cat.nameEn}
+                  {selectedCategory === cat.slug ? '☑' : '□'} {pickLocalized(cat.nameEn, cat.nameAm)}
                 </button>
               ))}
             </div>
@@ -261,12 +265,12 @@ function ShopContent() {
                     </div>
                     <div className="flex items-center justify-between text-muted">
                       <span className="text-[11px] font-medium tracking-wide uppercase">
-                        {product.category.nameEn}
+                        {pickLocalized(product.category.nameEn, product.category.nameAm)}
                       </span>
                       <span className="text-[20px] leading-none">♡</span>
                     </div>
                     <p className="text-[16px] font-medium text-ink min-h-[44px]">
-                      {product.nameEn}
+                      {pickLocalized(product.nameEn, product.nameAm)}
                     </p>
                     <p className="text-[20px] font-semibold text-ink">
                       {formatEtb(product.minPrice)}

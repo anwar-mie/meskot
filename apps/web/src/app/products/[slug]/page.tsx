@@ -8,6 +8,7 @@ import { StorefrontHeader } from '@/components/storefront-header';
 import { apiFetch, ApiError } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import { resolveProductImage } from '@/lib/product-images';
+import { useTranslations } from '@/lib/i18n';
 
 interface VariantDetail {
   id: string;
@@ -22,10 +23,11 @@ interface ProductDetail {
   id: string;
   slug: string;
   nameEn: string;
+  nameAm?: string | null;
   subtitleEn: string | null;
   descriptionEn: string | null;
   brand: string | null;
-  category: { slug: string; nameEn: string };
+  category: { slug: string; nameEn: string; nameAm?: string | null };
   images: Array<{ id: string; url: string; altText: string | null }>;
   variants: VariantDetail[];
 }
@@ -34,6 +36,7 @@ export default function ProductDetailsPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const { t, pickLocalized } = useTranslations();
   const slug = params.slug;
 
   const [product, setProduct] = useState<ProductDetail | null>(null);
@@ -153,7 +156,9 @@ export default function ProductDetailsPage() {
                 <p className="text-[13px] font-semibold tracking-wide text-brand uppercase">
                   {product.brand ?? 'THE EVERYDAY COLLECTION'}
                 </p>
-                <h1 className="text-[28px] font-bold text-ink">{product.nameEn}</h1>
+                <h1 className="text-[28px] font-bold text-ink">
+                  {pickLocalized(product.nameEn, product.nameAm)}
+                </h1>
                 <p className="text-[28px] font-bold text-brand">
                   {selectedVariant ? formatEtb(selectedVariant.price) : '—'}
                 </p>
@@ -238,7 +243,7 @@ export default function ProductDetailsPage() {
                       onClick={handleAddToCart}
                       className="min-h-[48px] px-6 py-3 rounded-[10px] bg-brand text-[16px] font-semibold text-white hover:bg-brand-hover disabled:opacity-50 transition-colors"
                     >
-                      {adding ? 'Adding...' : 'Add to cart'}
+                      {adding ? t('adding') : t('addToCart')}
                     </button>
                   </div>
                 </div>

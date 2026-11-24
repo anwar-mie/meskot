@@ -86,4 +86,12 @@ export class AuthController {
   me(@Req() req: RequestWithUser) {
     return { user: req.user };
   }
+
+  @Post('locale')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  updateLocale(@Body() body: { locale: 'en' | 'am' }, @Req() req: RequestWithUser) {
+    const locale = body.locale === 'am' ? 'am' : 'en';
+    return this.authService.updatePreferredLocale(req.user!.sub, locale);
+  }
 }
