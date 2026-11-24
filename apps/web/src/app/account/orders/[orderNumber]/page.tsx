@@ -118,6 +118,14 @@ export default function OrderTrackingPage() {
                   {cancelling ? 'Cancelling...' : 'Cancel order'}
                 </button>
               )}
+              {(order.status === 'DELIVERED' || order.status === 'COMPLETED') && (
+                <Link
+                  href={`/account/orders/${order.orderNumber}/return`}
+                  className="inline-flex items-center min-h-[44px] px-4 rounded-[10px] border border-border-subtle bg-surface text-[14px] font-semibold text-ink hover:bg-canvas"
+                >
+                  Request return
+                </Link>
+              )}
             </div>
 
             {error && (

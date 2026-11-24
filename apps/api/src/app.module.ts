@@ -9,6 +9,7 @@ import { CatalogModule } from './modules/catalog/catalog.module';
 import { StockModule } from './modules/stock/stock.module';
 import { SalesModule } from './modules/sales/sales.module';
 import { FulfilmentModule } from './modules/fulfilment/fulfilment.module';
+import { OperationsModule } from './modules/operations/operations.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { FulfilmentModule } from './modules/fulfilment/fulfilment.module';
     StockModule,
     SalesModule,
     FulfilmentModule,
+    OperationsModule,
   ],
   controllers: [HealthController],
   providers: [
