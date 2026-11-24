@@ -24,7 +24,7 @@ const FEATURED_FALLBACK = [
     name: 'Studio wireless headphones',
     price: 4850,
     available: true,
-    image: null,
+    image: '/images/wireless-headphones.png',
   },
   {
     slug: 'terracotta-vase',
@@ -32,7 +32,7 @@ const FEATURED_FALLBACK = [
     name: 'Terracotta vase',
     price: 980,
     available: true,
-    image: null,
+    image: '/images/terracotta-vase.png',
   },
   {
     slug: 'handloom-cotton-throw',
@@ -40,7 +40,7 @@ const FEATURED_FALLBACK = [
     name: 'Handloom cotton throw',
     price: 2150,
     available: true,
-    image: null,
+    image: '/images/cotton-throw.png',
   },
 ];
 

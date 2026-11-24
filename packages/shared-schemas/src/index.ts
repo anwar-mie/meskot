@@ -118,11 +118,49 @@ export const createOrderSchema = z.object({
 export const stockAdjustmentSchema = z.object({
   warehouseId: z.string().min(1),
   variantId: z.string().min(1),
-  type: z.enum(['RECEIVE', 'ADJUSTMENT_IN', 'ADJUSTMENT_OUT', 'STOCKTAKE_RECONCILE']),
-  quantityDelta: z.number().int().refine((v) => v !== 0, 'Quantity delta must be non-zero'),
-  unitCost: z.number().nonnegative().optional(),
-  reason: z.string().trim().min(3).max(300),
+  direction: z.enum(['ADD', 'REMOVE']),
+  quantity: z.number().int().positive('Quantity must be at least 1'),
+  reason: z.string().trim().min(3, 'Reason is required').max(200),
+  notes: z.string().trim().max(500).optional(),
 });
+
+export const receiveStockSchema = z.object({
+  warehouseId: z.string().min(1),
+  variantId: z.string().min(1),
+  quantity: z.number().int().positive('Quantity received must be at least 1'),
+  unitCost: z.number().nonnegative().optional(),
+  supplierReference: z.string().trim().max(120).optional(),
+  reason: z.string().trim().min(3, 'Reason is required').max(200),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const productVariantInputSchema = z.object({
+  id: z.string().optional(),
+  sku: z.string().trim().min(2).max(64),
+  nameEn: z.string().trim().min(1).max(120),
+  nameAm: z.string().trim().max(120).optional(),
+  price: z.number().positive('Price must be positive'),
+  compareAtPrice: z.number().positive().nullable().optional(),
+  costPrice: z.number().nonnegative().nullable().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export const createProductSchema = z.object({
+  categoryId: z.string().min(1),
+  nameEn: z.string().trim().min(2).max(160),
+  nameAm: z.string().trim().max(160).optional(),
+  slug: z.string().trim().min(2).max(160).optional(),
+  subtitleEn: z.string().trim().max(240).optional(),
+  descriptionEn: z.string().trim().max(4000).optional(),
+  brand: z.string().trim().max(120).optional(),
+  status: z.enum(['DRAFT', 'PUBLISHED', 'UNPUBLISHED', 'ARCHIVED']).default('DRAFT'),
+  isFeatured: z.boolean().default(false),
+  isReturnable: z.boolean().default(true),
+  imageUrl: z.string().trim().max(500).optional(),
+  variants: z.array(productVariantInputSchema).min(1, 'At least one sellable variant is required'),
+});
+
+export const updateProductSchema = createProductSchema.partial();
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -135,3 +173,6 @@ export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type StockAdjustmentInput = z.infer<typeof stockAdjustmentSchema>;
+export type ReceiveStockInput = z.infer<typeof receiveStockSchema>;
+export type CreateProductInput = z.infer<typeof createProductSchema>;
+export type UpdateProductInput = z.infer<typeof updateProductSchema>;

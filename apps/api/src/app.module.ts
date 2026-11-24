@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { HealthController } from './modules/health/health.controller';
 import { IdentityModule } from './modules/identity/identity.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
+import { StockModule } from './modules/stock/stock.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CatalogModule } from './modules/catalog/catalog.module';
     PrismaModule,
     IdentityModule,
     CatalogModule,
+    StockModule,
   ],
   controllers: [HealthController],
   providers: [
