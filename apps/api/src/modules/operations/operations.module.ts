@@ -7,6 +7,12 @@ import { ReturnsController } from './returns.controller';
 import { ReturnsService } from './returns.service';
 import { ReportsController } from './reports.controller';
 import { ReportsService } from './reports.service';
+import { CustomersController } from './customers.controller';
+import { CustomersService } from './customers.service';
+import { DeliveryZonesController } from './delivery-zones.controller';
+import { DeliveryZonesService } from './delivery-zones.service';
+import { SettingsController } from './settings.controller';
+import { SettingsService } from './settings.service';
 
 @Module({
   controllers: [
@@ -14,7 +20,18 @@ import { ReportsService } from './reports.service';
     DeliveriesController,
     ReturnsController,
     ReportsController,
+    CustomersController,
+    DeliveryZonesController,
+    SettingsController,
   ],
-  providers: [StaffOrdersService, DeliveriesService, ReturnsService, ReportsService],
+  providers: [
+    StaffOrdersService,
+    DeliveriesService,
+    ReturnsService,
+    ReportsService,
+    CustomersService,
+    DeliveryZonesService,
+    SettingsService,
+  ],
 })
 export class OperationsModule {}

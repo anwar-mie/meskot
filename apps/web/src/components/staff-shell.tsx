@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { label: 'Products', href: '/dashboard/products' },
   { label: 'Inventory', href: '/dashboard/inventory' },
   { label: 'Orders', href: '/dashboard/orders' },
+  { label: 'Deliveries', href: '/dashboard/deliveries' },
   { label: 'Customers', href: '/dashboard/customers' },
   { label: 'Reports', href: '/dashboard/reports' },
   { label: 'Employees', href: '/dashboard/employees' },
