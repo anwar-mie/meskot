@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { formatEtb } from '@meskot/shared-types';
 import { StorefrontHeader } from '@/components/storefront-header';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, ApiError } from '@/lib/api';
+import { useAuthStore } from '@/lib/auth-store';
 import { resolveProductImage } from '@/lib/product-images';
 
 interface VariantDetail {
@@ -31,6 +32,8 @@ interface ProductDetail {
 
 export default function ProductDetailsPage() {
   const params = useParams<{ slug: string }>();
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
   const slug = params.slug;
 
   const [product, setProduct] = useState<ProductDetail | null>(null);
@@ -38,7 +41,10 @@ export default function ProductDetailsPage() {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'delivery'>('description');
   const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const [cartNotice, setCartNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -53,12 +59,43 @@ export default function ProductDetailsPage() {
       .finally(() => setLoading(false));
   }, [slug]);
 
+  useEffect(() => {
+    if (!user) return;
+    apiFetch<{ itemCount: number }>('/cart', { auth: true })
+      .then((c) => setCartCount(c.itemCount))
+      .catch(() => {});
+  }, [user]);
+
   const selectedVariant =
     product?.variants.find((v) => v.id === selectedVariantId) ?? product?.variants[0] ?? null;
 
+  async function handleAddToCart() {
+    if (!selectedVariant) return;
+    if (!user) {
+      router.push('/auth/sign-in');
+      return;
+    }
+    setAdding(true);
+    setError(null);
+    setCartNotice(null);
+    try {
+      const updatedCart = await apiFetch<{ itemCount: number }>('/cart/items', {
+        method: 'POST',
+        auth: true,
+        body: JSON.stringify({ variantId: selectedVariant.id, quantity }),
+      });
+      setCartCount(updatedCart.itemCount);
+      setCartNotice(`Added ${quantity} × ${product?.nameEn} to your cart.`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Unable to add item to cart.');
+    } finally {
+      setAdding(false);
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-canvas">
-      <StorefrontHeader />
+      <StorefrontHeader cartCount={cartCount} />
 
       <main className="max-w-[1440px] w-full mx-auto px-6 lg:px-16 pt-8 pb-16 flex flex-col gap-6">
         {loading ? (
@@ -85,7 +122,6 @@ export default function ProductDetailsPage() {
               / <span className="text-ink">{product.nameEn}</span>
             </p>
 
-            {/* Gallery & purchase options (Figma 4:694) */}
             <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,640px)_1fr] gap-6 items-start">
               <div className="flex flex-col gap-4">
                 <div className="h-[420px] lg:h-[500px] w-full rounded-[12px] overflow-hidden bg-surface border border-border-subtle">
@@ -139,7 +175,6 @@ export default function ProductDetailsPage() {
                   </span>
                 )}
 
-                {/* Variant picker */}
                 <div className="flex flex-col gap-2 w-full">
                   <p className="text-[16px] font-semibold text-ink">
                     Variant · {selectedVariant?.nameEn ?? ''}
@@ -172,7 +207,6 @@ export default function ProductDetailsPage() {
                   </div>
                 </div>
 
-                {/* Quantity & Add to cart */}
                 <div className="flex flex-col gap-2 w-full">
                   <p className="text-[16px] font-medium text-ink">Quantity</p>
                   <div className="flex flex-wrap items-center gap-3">
@@ -200,22 +234,27 @@ export default function ProductDetailsPage() {
 
                     <button
                       type="button"
-                      disabled={!selectedVariant || selectedVariant.availableQuantity === 0}
-                      onClick={() =>
-                        setCartNotice(
-                          `Selected ${quantity} × ${product.nameEn} (${selectedVariant?.sku}). Full cart & checkout arrive in Slice 4.`,
-                        )
-                      }
+                      disabled={adding || !selectedVariant || selectedVariant.availableQuantity === 0}
+                      onClick={handleAddToCart}
                       className="min-h-[48px] px-6 py-3 rounded-[10px] bg-brand text-[16px] font-semibold text-white hover:bg-brand-hover disabled:opacity-50 transition-colors"
                     >
-                      Add to cart
+                      {adding ? 'Adding...' : 'Add to cart'}
                     </button>
                   </div>
                 </div>
 
+                {error && (
+                  <div className="rounded-[10px] border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700 w-full">
+                    {error}
+                  </div>
+                )}
+
                 {cartNotice && (
-                  <div className="rounded-[10px] border border-brand/30 bg-brand-tint px-4 py-3 text-[13px] text-brand w-full">
-                    {cartNotice}
+                  <div className="rounded-[10px] border border-brand/30 bg-brand-tint px-4 py-3 text-[13px] text-brand w-full flex items-center justify-between gap-3">
+                    <span>✓ {cartNotice}</span>
+                    <Link href="/cart" className="font-semibold underline shrink-0">
+                      View cart →
+                    </Link>
                   </div>
                 )}
 
@@ -229,7 +268,6 @@ export default function ProductDetailsPage() {
               </div>
             </div>
 
-            {/* Product information tabs */}
             <section className="rounded-[14px] border border-border-subtle bg-surface p-6 flex flex-col gap-4">
               <div className="flex flex-wrap gap-6 border-b border-border-subtle pb-3 text-[16px]">
                 <button
@@ -277,8 +315,8 @@ export default function ProductDetailsPage() {
               )}
               {activeTab === 'delivery' && (
                 <p className="text-[15px] text-muted">
-                  Same-day or next-day delivery across Addis Ababa (Bole, Kirkos, Yeka, Arada, Nifas
-                  Silk, Kolfe). Regional delivery in 2–4 business days.
+                  Same-day or next-day delivery across Addis Ababa. Regional delivery in 2–4
+                  business days.
                 </p>
               )}
             </section>

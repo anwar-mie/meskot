@@ -115,6 +115,37 @@ export const createOrderSchema = z.object({
   customerNote: z.string().trim().max(500).optional(),
 });
 
+export const addCartItemSchema = z.object({
+  variantId: z.string().min(1),
+  quantity: z.number().int().min(1).max(99).default(1),
+});
+
+export const updateCartItemSchema = z.object({
+  quantity: z.number().int().min(0).max(99),
+});
+
+export const createAddressSchema = z.object({
+  label: z.string().trim().min(1).max(60).default('Home'),
+  recipientName: z.string().trim().min(2).max(120),
+  recipientPhone: ethiopianPhoneSchema,
+  deliveryZoneId: z.string().min(1),
+  city: z.string().trim().min(2).max(80).default('Addis Ababa'),
+  subCity: z.string().trim().max(80).optional(),
+  woreda: z.string().trim().max(40).optional(),
+  streetAddress: z.string().trim().min(3).max(240),
+  landmark: z.string().trim().max(160).optional(),
+  isDefault: z.boolean().default(false),
+});
+
+export const initializePaymentSchema = z.object({
+  orderId: z.string().min(1),
+  returnUrl: z.string().url().optional(),
+});
+
+export const cancelOrderSchema = z.object({
+  reason: z.string().trim().min(3).max(300).optional(),
+});
+
 export const stockAdjustmentSchema = z.object({
   warehouseId: z.string().min(1),
   variantId: z.string().min(1),
@@ -172,6 +203,11 @@ export type UpdateRolePermissionsInput = z.infer<typeof updateRolePermissionsSch
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+export type AddCartItemInput = z.infer<typeof addCartItemSchema>;
+export type UpdateCartItemInput = z.infer<typeof updateCartItemSchema>;
+export type CreateAddressInput = z.infer<typeof createAddressSchema>;
+export type InitializePaymentInput = z.infer<typeof initializePaymentSchema>;
+export type CancelOrderInput = z.infer<typeof cancelOrderSchema>;
 export type StockAdjustmentInput = z.infer<typeof stockAdjustmentSchema>;
 export type ReceiveStockInput = z.infer<typeof receiveStockSchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;

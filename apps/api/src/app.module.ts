@@ -7,6 +7,8 @@ import { HealthController } from './modules/health/health.controller';
 import { IdentityModule } from './modules/identity/identity.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { StockModule } from './modules/stock/stock.module';
+import { SalesModule } from './modules/sales/sales.module';
+import { FulfilmentModule } from './modules/fulfilment/fulfilment.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { StockModule } from './modules/stock/stock.module';
     IdentityModule,
     CatalogModule,
     StockModule,
+    SalesModule,
+    FulfilmentModule,
   ],
   controllers: [HealthController],
   providers: [
