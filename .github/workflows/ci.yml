@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Typecheck, Test & Build
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: postgresql://meskot:meskot@localhost:5432/meskot?schema=public
+      JWT_ACCESS_SECRET: ci-access-secret-placeholder-32-chars
+      JWT_REFRESH_SECRET: ci-refresh-secret-placeholder-32-chars
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate & generate Prisma 6 client
+        run: |
+          bun run --cwd packages/database prisma validate
+          bun run --cwd packages/database prisma generate
+
+      - name: Run unit & SRS acceptance tests
+        run: bun run test
+
+      - name: Run monorepo typecheck
+        run: bun run typecheck
+
+      - name: Run monorepo build
+        run: bun run build
